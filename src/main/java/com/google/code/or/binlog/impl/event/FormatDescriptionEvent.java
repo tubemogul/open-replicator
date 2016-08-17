@@ -116,14 +116,15 @@ public final class FormatDescriptionEvent extends AbstractBinlogEventV4 {
 
 	}
 
-	public boolean checksumPossible() {
-		Integer[] version = splitServerVersion();
-		if ( version[0] >= 5 && version[1] >= 6 && version[2] >= 1 ) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+    public boolean checksumPossible() {
+        Integer[] version = splitServerVersion();
+        // if ( version[0] >= 5 && version[1] >= 6 && version[2] >= 1 ) {
+        if (version[0] * 1000 + version[1] * 100 + version[2] >= /* 5.6.1 */5 * 1000 + 6 * 100 + 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 	private Integer[] splitServerVersion() {
 		String version = this.serverVersion.toString();

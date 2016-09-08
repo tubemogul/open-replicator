@@ -19,14 +19,13 @@ package com.google.code.or.binlog.impl;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import com.google.code.or.binlog.impl.parser.FormatDescriptionEventParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.or.binlog.BinlogEventParser;
 import com.google.code.or.binlog.impl.event.BinlogEventV4HeaderImpl;
+import com.google.code.or.binlog.impl.parser.FormatDescriptionEventParser;
 import com.google.code.or.common.util.MySQLConstants;
-import com.google.code.or.io.XInputStream;
 import com.google.code.or.net.Transport;
 import com.google.code.or.net.TransportInputStream;
 import com.google.code.or.net.impl.EventInputStream;
@@ -91,8 +90,14 @@ public class ReplicationBasedBinlogParser extends AbstractBinlogParser {
 				final ErrorPacket packet = ErrorPacket.valueOf(ts.currentPacketLength(), ts.currentPacketSequence(), packetMarker, ts);
 				throw new RuntimeException(packet.toString());
 			} else if((byte)packetMarker == EOFPacket.PACKET_MARKER) {
-				final EOFPacket packet = EOFPacket.valueOf(ts.currentPacketLength(), ts.currentPacketSequence(), packetMarker, ts);
-				throw new RuntimeException(packet.toString());
+                /*
+                 * In the MySQL client/server protocol, EOF and OK packets serve the same purpose, to mark the end of a
+                 * query execution result. The EOF packet is deprecated as of MySQL 5.7.5.
+                 */
+                final EOFPacket packet =
+                        EOFPacket.valueOf(ts.currentPacketLength(), ts.currentPacketSequence(), packetMarker, ts);
+                // throw new RuntimeException(packet.toString());
+                LOGGER.info("EOFPacket encountered. Ignoring.");
 			} else {
 				throw new RuntimeException("assertion failed, invalid packet marker: " + packetMarker);
 			}
